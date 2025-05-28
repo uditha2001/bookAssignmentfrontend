@@ -11,6 +11,7 @@ const HomePage = () => {
             try {
                 const response = await getAllProducts();
                 if (response.status === 200) {
+                    console.log("Products fetched successfully:", response.data);
                     setProducts(response.data);
                 } else {
                     console.error("Failed to fetch products");

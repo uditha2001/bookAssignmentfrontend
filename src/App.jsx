@@ -7,6 +7,7 @@ const Home = React.lazy(() => import('./pages/HomePage.jsx'));
 const Login = React.lazy(() => import('./pages/Login.jsx'));
 const Signup = React.lazy(() => import('./pages/Register.jsx'));
 const Cart = React.lazy(() => import('./pages/CartViewPage.jsx'));
+const ProductManage= React.lazy(() => import('./pages/ProductManagement.jsx'));
 function App() {
   return (
     <Suspense fallback={<div>Loading...</div>}>
@@ -19,6 +20,8 @@ function App() {
         <Route element={<AuthenticatedLayout />}>
             <Route path="/" element={<Home />} />
             <Route path="/cart" element={<Cart/>} />
+            <Route path="/products" element={<ProductManage/>} />
+
         </Route>
       </Routes>
     </Suspense>

@@ -55,7 +55,11 @@ const HeaderComponent = () => {
                             <FiSearch className="text-2xl text-black" />
                         </button>
                         {/* Cart Icon */}
-                        <button className="focus:outline-none" aria-label="Cart">
+                        <button
+                            className="focus:outline-none"
+                            aria-label="Cart"
+                            onClick={() => navigate("/login")}
+                        >
                             <FiShoppingCart className="text-2xl text-black" />
                         </button>
                         {/* User Image/Icon */}

@@ -10,7 +10,7 @@ const useAxiosPrivate = () => {
         const requestInterceptor = privateAxios.interceptors.request.use(
             (config) => {
                 const user = JSON.parse(localStorage.getItem("user") || "null");
-                const token = user?.accessToken;
+                const token = user?.acessToken;
                 if (token && !config.headers['Authorization']) {
                     config.headers['Authorization'] = `Bearer ${token}`;
                 }
@@ -28,6 +28,7 @@ const useAxiosPrivate = () => {
                 if (status === 401 && !prevRequest?.sent) {
                     prevRequest.sent = true;
                     try {
+                        localStorage.removeItem("user");
                         navigate("/login", { replace: true });
                         return Promise.reject(error);
                     } catch (err) {

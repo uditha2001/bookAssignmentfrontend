@@ -7,16 +7,35 @@ const useProductApi = () => {
         return response;
     };
     
-    const getProductById = async (id) => {
-        try {
-        const response = await axiosPrivate.get(`/products/${id}`);
-        return response.data;
-        } catch (error) {
-        throw error;
-        }
+    const createProduct = async (productData) => {
+        const response = await axiosPrivate.post("/product", productData);
+        return response;
     };
-    
-    return { getAllProducts, getProductById };
+    const getProductCategory = async () => {
+        const response = await axiosPrivate.get(`/product/category`);
+        return response;
+    };
+   const createContent = async (productId, images) => {
+    const formData = new FormData();
+
+    images.forEach((image) => {
+        formData.append('images', image); // Key must match 'images' in backend
+    });
+
+    const response = await axiosPrivate.post(
+        `/product/content?productId=${productId}`,
+        formData,
+        {
+            headers: {
+                'Content-Type': 'multipart/form-data'
+            }
+        }
+    );
+
+    return response;
+};
+
+    return { getAllProducts, createProduct, getProductCategory,createContent };
     }
 
 export default useProductApi;

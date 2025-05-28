@@ -63,6 +63,18 @@ const AuhtenticatedHeader = () => {
                     <ButtonComponent className="border-0 hover:border-b-2 hover:border-black rounded-none transition-all">
                         About
                     </ButtonComponent>
+                    <ButtonComponent
+                        className="border-0 hover:border-b-2 hover:border-black rounded-none transition-all"
+                        onClick={() => navigate("/products")}
+                    >
+                        Products
+                    </ButtonComponent>
+                    <ButtonComponent
+                        className="border-0 hover:border-b-2 hover:border-black rounded-none transition-all"
+                        onClick={() => navigate("/orders")}
+                    >
+                        Orders
+                    </ButtonComponent>
                 </nav>
                 {/* Right Side Icons and Search Bar */}
                 <div className="flex items-center space-x-4 relative">
@@ -150,6 +162,24 @@ const AuhtenticatedHeader = () => {
                     </ButtonComponent>
                     <ButtonComponent className="w-full text-right border-0 hover:border-b-2 hover:border-black rounded-none transition-all">
                         About
+                    </ButtonComponent>
+                    <ButtonComponent
+                        className="w-full text-right border-0 hover:border-b-2 hover:border-black rounded-none transition-all"
+                        onClick={() => {
+                            setMenuOpen(false);
+                            navigate("/products");
+                        }}
+                    >
+                        Products
+                    </ButtonComponent>
+                    <ButtonComponent
+                        className="w-full text-right border-0 hover:border-b-2 hover:border-black rounded-none transition-all"
+                        onClick={() => {
+                            setMenuOpen(false);
+                            navigate("/orders");
+                        }}
+                    >
+                        Orders
                     </ButtonComponent>
                 </div>
             )}
