@@ -1,5 +1,30 @@
 import { FiTrash2, FiEdit2, FiX } from "react-icons/fi";
-import { useNavigate } from "react-router-dom"; // Add this import
+import { useNavigate } from "react-router-dom";
+import useProductApi from "../api/productAPI/useProductApi";
+import { useState } from "react";
+
+// Simple confirmation dialog component
+const ConfirmDialog = ({ message, onConfirm, onCancel }) => (
+  <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
+    <div className="bg-white p-6 rounded shadow-lg">
+      <p className="mb-4">{message}</p>
+      <div className="flex gap-4">
+        <button
+          className="bg-red-600 text-white px-4 py-2 rounded"
+          onClick={onConfirm}
+        >
+          Yes, Delete
+        </button>
+        <button
+          className="bg-gray-300 text-black px-4 py-2 rounded"
+          onClick={onCancel}
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+);
 
 const BASE_URL = "http://localhost:5010/";
 
@@ -13,43 +38,81 @@ const ProductDetailsView = ({
     onEditContent,
     onEditAttribute,
 }) => {
-    const navigate = useNavigate(); // Add this line
+    const navigate = useNavigate();
+    const { deleteProduct } = useProductApi();
+    const [showConfirm, setShowConfirm] = useState(false);
+
+    const handleDelete = async () => {
+        setShowConfirm(true);
+    };
+
+    const confirmDelete = async () => {
+        setShowConfirm(false);
+        const response = await deleteProduct(product.id);
+        if (response.status === 200 || response.status === 204) {
+            if (onDeleteProduct) onDeleteProduct();
+        } else {
+            alert("Failed to delete product.");
+        }
+    };
 
     if (!product) {
         return <div className="text-center text-gray-500 py-8">No product selected.</div>;
     }
 
-    // Find category name if not provided
     const categoryName =
         product.categoryName ||
         categories.find((c) => c.id === Number(product.productCategoryId))?.name ||
         "No Category";
 
-    // Normalize URL to full URL if relative
-    const getContentUrl = (url) => {
-        if (!url) return "";
-        if (url.startsWith("http://") || url.startsWith("https://")) {
+        const getContentUrl = (url) => {
+        console.log("getContentUrl", url);
+          if (!url) return "";
+          if (url.startsWith("http://") || url.startsWith("https://")) {
+            console.log("External URL", url);
             return url;
-        }
-        return BASE_URL + url.replace(/^\/+/, "");
-    };
+          }
+          console.log("BASE_URL", BASE_URL+url.replace(/^\/+/, ""));
+          return BASE_URL + url.replace(/^\/+/, "");
+        };
+    
 
-    // Edit handler: navigate to /editProducts with product as state
     const handleEdit = () => {
         navigate("/editProducts", { state: { product } });
     };
 
+    const images = Array.isArray(product.contents)
+      ? product.contents.filter(c => c.type && c.type.toLowerCase().startsWith("image"))
+      : [];
+    console.log("Filtered images", images);
+
     return (
         <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
+            {showConfirm && (
+                <ConfirmDialog
+                    message="Are you sure you want to delete this product?"
+                    onConfirm={confirmDelete}
+                    onCancel={() => setShowConfirm(false)}
+                />
+            )}
             <div className="flex justify-between items-center mb-4">
                 <h2 className="text-2xl font-bold">{product.name}</h2>
-                <button
-                    className="text-blue-600 hover:text-blue-800"
-                    onClick={handleEdit}
-                    title="Edit Product"
-                >
-                    <FiEdit2 />
-                </button>
+                <div className="flex gap-2">
+                    <button
+                        className="text-blue-600 hover:text-blue-800"
+                        onClick={handleEdit}
+                        title="Edit Product"
+                    >
+                        <FiEdit2 />
+                    </button>
+                    <button
+                        className="text-red-600 hover:text-red-800"
+                        onClick={handleDelete}
+                        title="Delete Product"
+                    >
+                        <FiTrash2 />
+                    </button>
+                </div>
             </div>
             <div className="mb-2 text-gray-600">
                 <span className="font-semibold">Category:</span> {categoryName}
@@ -70,8 +133,8 @@ const ProductDetailsView = ({
             <div className="mb-4">
                 <span className="font-semibold">Images:</span>
                 <div className="flex flex-wrap gap-3 mt-2">
-                    {Array.isArray(product.contents) && product.contents.filter(c => c.type?.toLowerCase() === "image").length > 0 ? (
-                        product.contents.filter(c => c.type?.toLowerCase() === "image").map((content, idx) => (
+                    {images.length > 0 ? (
+                        images.map((content, idx) => (
                             <div
                                 key={idx}
                                 className="relative w-20 h-20 border rounded overflow-hidden flex items-center justify-center bg-gray-100"

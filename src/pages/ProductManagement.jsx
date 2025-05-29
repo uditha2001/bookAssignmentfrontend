@@ -70,47 +70,45 @@ const ProductManagement = () => {
     if (isAddProduct) {
       const addProduct = async () => {
         try {
-          // Exclude Attributes from product payload
-          const { Attributes, ...productPayload } = newProduct;
-          const response = await createProduct({
-            ...productPayload,
-            Contents: [],
-          });
+          const { Attributes, Contents, ...productPayload } = newProduct;
+          const response = await createProduct(productPayload);
 
-          const createdProduct = response.data;
+          const createdProductId = response.data;
+          if (response.status === 200) {
+            
+            const allFiles = (newProduct.Contents || [])
+              .map((c) => c.file)
+              .filter(Boolean);
+            if (allFiles.length > 0 && createdProductId) {
+              const formData = new FormData();
+              allFiles.forEach((file) => {
+                formData.append("images", file);
+              });
+              await createContent(createdProductId, formData);
+            }
 
-          // Upload images if any
-          if (contentFiles.length > 0 && createdProduct.id) {
-            const formData = new FormData();
-            contentFiles.forEach((file) => {
-              formData.append("images", file);
-            });
-            await createContent(createdProduct.id, formData);
-          }
+            // Upload attributes if any
+            let allAttrSuccess = true;
+            
+            if (createdProductId && Attributes.length > 0) {
+              console.log("Attributes to upload:", Attributes);
+              console.log("Created Product ID:", createdProductId);
+              const attrResponse = await createAttribute(
+                createdProductId,
+                Attributes
+              );
+              allAttrSuccess = attrResponse.status === 200;
+            }
 
-          // Send all attributes in one request and check response
-          let allAttrSuccess = true;
-
-          if (
-            createdProduct.id &&
-            Attributes.length > 0 &&
-            typeof createAttribute === "function"
-          ) {
-            const attrResponse = await createAttribute(
-              Attributes,
-              createdProduct.id
-            );
-            allAttrSuccess = attrResponse.status === 200;
-          }
-
-          if (allAttrSuccess) {
-            setSuccessMessage(
-              "Product, images, and attributes created successfully!"
-            );
-          } else {
-            setErrorMessage(
-              "Product created, but one or more attributes failed to save."
-            );
+            if (allAttrSuccess) {
+              setSuccessMessage(
+                "Product, images, and attributes created successfully!"
+              );
+            } else {
+              setErrorMessage(
+                "Product created, but one or more attributes failed to save."
+              );
+            }
           }
 
           setNewProduct({
@@ -160,7 +158,7 @@ const ProductManagement = () => {
         ...prev,
         Attributes: [
           ...prev.Attributes,
-          { key: attribute.key, value: attribute.value },
+          { key: attribute.key, value: attribute.value }, 
         ],
       }));
       setAttribute({ key: "", value: "" });
@@ -180,23 +178,6 @@ const ProductManagement = () => {
     setContentFiles(files);
   };
 
-  const addContents = () => {
-    if (contentFiles.length > 0) {
-      setNewProduct((prev) => ({
-        ...prev,
-        Contents: [
-          ...prev.Contents,
-          ...contentFiles.map((file) => ({
-            url: URL.createObjectURL(file),
-            name: file.name,
-            file,
-          })),
-        ],
-      }));
-      setContentFiles([]);
-    }
-  };
-
   const removeContent = (idx) => {
     setNewProduct((prev) => ({
       ...prev,
@@ -213,6 +194,24 @@ const ProductManagement = () => {
 
   const handleDeleteProduct = (idx) => {
     setProducts((prev) => prev.filter((_, i) => i !== idx));
+  };
+
+  // Add this handler above your component return:
+  const handleAddImages = () => {
+    if (contentFiles.length > 0) {
+      setNewProduct((prev) => ({
+        ...prev,
+        Contents: [
+          ...prev.Contents,
+          ...contentFiles.map((file) => ({
+            url: URL.createObjectURL(file),
+            name: file.name,
+            file,
+          })),
+        ],
+      }));
+      setContentFiles([]);
+    }
   };
 
   return (
@@ -395,10 +394,11 @@ const ProductManagement = () => {
               />
               <button
                 type="button"
-                className="bg-black text-white px-3 py-1 rounded flex items-center"
-                onClick={addContents}
+                className="bg-black text-white px-3 py-1 rounded flex items-center ml-2"
+                onClick={handleAddImages}
+                disabled={contentFiles.length === 0}
               >
-                <FiPlus className="mr-1" /> Add
+                <FiPlus /> Add
               </button>
             </div>
             <div className="flex flex-wrap gap-2">
@@ -420,6 +420,18 @@ const ProductManagement = () => {
                   >
                     <FiTrash2 />
                   </button>
+                </div>
+              ))}
+              {contentFiles.map((file, idx) => (
+                <div
+                  key={`preview-${idx}`}
+                  className="relative w-16 h-16 border rounded overflow-hidden flex items-center justify-center bg-gray-100"
+                >
+                  <img
+                    src={URL.createObjectURL(file)}
+                    alt={file.name}
+                    className="object-cover w-full h-full"
+                  />
                 </div>
               ))}
             </div>

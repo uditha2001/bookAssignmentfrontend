@@ -24,6 +24,13 @@ const useCartApi = () => {
        const response = await axiosPrivate.delete(`/cart/clear/${userId}`);
        return response
      };
+     const getCartItemCount = async (userId) => {
+       const response = await axiosPrivate.get("/cart/count", {
+         params: { userId },
+       });
+       return response;
+     };
+  
     
     
     
@@ -33,7 +40,8 @@ const useCartApi = () => {
             getCartByUserId,
             updateCartQuantities,
             removeItemFromCart,
-            clearCart
+            clearCart,
+            getCartItemCount
      }
 }
 export default useCartApi;

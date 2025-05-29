@@ -8,7 +8,8 @@ import ErrorMessage from "../components/ErrorMessage";
 const BASE_URL = "http://localhost:5010/";
 
 const CartViewPage = () => {
-  const { getCartByUserId, removeItemFromCart, updateCartQuantities } = useCartApi();
+  const { getCartByUserId, removeItemFromCart, updateCartQuantities } =
+    useCartApi();
   const { getProductById } = useProductApi();
   const [cartItems, setCartItems] = useState([]);
   const [editedQuantities, setEditedQuantities] = useState({});
@@ -18,38 +19,39 @@ const CartViewPage = () => {
   const [confirmDeleteId, setConfirmDeleteId] = useState(null);
   const [productDetails, setProductDetails] = useState({});
 
-  useEffect(() => {
-    const fetchCart = async () => {
-      try {
-        const user = JSON.parse(localStorage.getItem("user"));
-        const userId = user?.userId;
-        if (userId) {
-          const response = await getCartByUserId(userId);
-          if (response.status === 200) {
-            setCartItems(response.data);
-            setEditedQuantities({});
-            // Fetch product details for all items
-            const details = {};
-            await Promise.all(
-              response.data.map(async (item) => {
-                if (!details[item.productId]) {
-                  const prodRes = await getProductById(item.productId);
-                  if (prodRes.status === 200) {
-                    details[item.productId] = prodRes.data;
-                  }
+  // Move fetchCart outside useEffect so you can call it anywhere
+  const fetchCart = async () => {
+    try {
+      const user = JSON.parse(localStorage.getItem("user"));
+      const userId = user?.userId;
+      if (userId) {
+        const response = await getCartByUserId(userId);
+        if (response.status === 200) {
+          setCartItems(response.data);
+          setEditedQuantities({});
+          // Fetch product details for all items
+          const details = {};
+          await Promise.all(
+            response.data.map(async (item) => {
+              if (!details[item.productId]) {
+                const prodRes = await getProductById(item.productId);
+                if (prodRes.status === 200) {
+                  details[item.productId] = prodRes.data;
                 }
-              })
-            );
-            console.log("Product details fetched:", details);
-            setProductDetails(details);
-          }
+              }
+            })
+          );
+          setProductDetails(details);
         }
-      } catch (error) {
-        setCartItems([]);
-      } finally {
-        setLoading(false);
       }
-    };
+    } catch (error) {
+      setCartItems([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
     fetchCart();
   }, [successMessage]);
 
@@ -63,19 +65,22 @@ const CartViewPage = () => {
 
   // Prepare update array and send to backend
   const handleUpdateCart = async () => {
-    const updateArray = Object.entries(editedQuantities).map(([cartItemId, qty]) => {
-      const item = cartItems.find((i) => i.cartItemId === Number(cartItemId));
-      return {
-        CartItemId: Number(cartItemId),
-        NewQuantity: qty,
-        newTotalPrice: item ? item.itemTotalPrice * qty : 0,
-      };
-    });
+    const updateArray = Object.entries(editedQuantities).map(
+      ([cartItemId, qty]) => {
+        const item = cartItems.find((i) => i.cartItemId === Number(cartItemId));
+        return {
+          CartItemId: Number(cartItemId),
+          NewQuantity: qty,
+          newTotalPrice: item ? item.itemTotalPrice * qty : 0,
+        };
+      }
+    );
     try {
       const response = await updateCartQuantities(updateArray);
       if (response.status === 200) {
         setSuccessMessage("Cart updated successfully!");
         setEditedQuantities({});
+        await fetchCart(); // <-- Refresh cart immediately after update
       } else {
         setErrorMessage("Failed to update cart.");
       }
@@ -100,33 +105,38 @@ const CartViewPage = () => {
   };
 
   const getFirstImageUrl = (contents) => {
-    
     if (!contents || !Array.isArray(contents)) return null;
     const img = contents.find(
       (c) => c.type && c.type.toLowerCase().startsWith("image")
     );
     if (!img) return null;
-    if (img.url.startsWith("http://") || img.url.startsWith("https://")) return img.url;
+    if (img.url.startsWith("http://") || img.url.startsWith("https://"))
+      return img.url;
     return BASE_URL + img.url.replace(/^\/+/, "");
   };
 
-  const total = cartItems.reduce(
-    (sum, item) =>
-      sum +
-      (item.itemTotalPrice || 0) *
-        (editedQuantities[item.cartItemId] ?? item.quantity ?? 1),
-    0
-  );
+  const total = cartItems.reduce((sum, item) => {
+    const product = productDetails[item.productId] || {};
+    const unitPrice = product.price ?? 0;
+    const qty = editedQuantities[item.cartItemId] ?? item.quantity ?? 1;
+    return sum + Number(unitPrice) * qty;
+  }, 0);
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-2">
       <div className="max-w-2xl mx-auto bg-white rounded-lg shadow p-6">
         <h2 className="text-2xl font-bold mb-6">Your Cart</h2>
         {successMessage && (
-          <SuccessMessage message={successMessage} onClose={() => setSuccessMessage("")} />
+          <SuccessMessage
+            message={successMessage}
+            onClose={() => setSuccessMessage("")}
+          />
         )}
         {errorMessage && (
-          <ErrorMessage message={errorMessage} onClose={() => setErrorMessage("")} />
+          <ErrorMessage
+            message={errorMessage}
+            onClose={() => setErrorMessage("")}
+          />
         )}
         {loading ? (
           <div className="text-center text-gray-500">Loading...</div>
@@ -139,8 +149,12 @@ const CartViewPage = () => {
                 const product = productDetails[item.productId] || {};
                 const contents = product.contents || [];
                 const firstImageUrl = getFirstImageUrl(contents);
+                const unitPrice = product.price ?? 0;
                 return (
-                  <div key={item.cartItemId} className="flex items-center border-b pb-4 last:border-b-0">
+                  <div
+                    key={item.cartItemId}
+                    className="flex items-center border-b pb-4 last:border-b-0"
+                  >
                     {firstImageUrl ? (
                       <img
                         src={firstImageUrl}
@@ -153,7 +167,9 @@ const CartViewPage = () => {
                       </div>
                     )}
                     <div className="flex-1">
-                      <div className="font-semibold">{product.name || "No Name"}</div>
+                      <div className="font-semibold">
+                        {product.name || "No Name"}
+                      </div>
                       <div className="text-sm text-gray-500 flex items-center gap-2">
                         Quantity:{" "}
                         <button
@@ -161,10 +177,19 @@ const CartViewPage = () => {
                           onClick={() =>
                             handleQuantityChange(
                               item.cartItemId,
-                              Math.max(1, (editedQuantities[item.cartItemId] ?? item.quantity ?? 1) - 1)
+                              Math.max(
+                                1,
+                                (editedQuantities[item.cartItemId] ??
+                                  item.quantity ??
+                                  1) - 1
+                              )
                             )
                           }
-                          disabled={(editedQuantities[item.cartItemId] ?? item.quantity ?? 1) <= 1}
+                          disabled={
+                            (editedQuantities[item.cartItemId] ??
+                              item.quantity ??
+                              1) <= 1
+                          }
                         >
                           -
                         </button>
@@ -176,7 +201,9 @@ const CartViewPage = () => {
                           onClick={() =>
                             handleQuantityChange(
                               item.cartItemId,
-                              (editedQuantities[item.cartItemId] ?? item.quantity ?? 1) + 1
+                              (editedQuantities[item.cartItemId] ??
+                                item.quantity ??
+                                1) + 1
                             )
                           }
                         >
@@ -184,13 +211,15 @@ const CartViewPage = () => {
                         </button>
                       </div>
                       <div className="text-sm text-gray-500">
-                        Price: {item.currency} {item.itemTotalPrice?.toFixed(2)}
+                        Price: {item.currency} {Number(unitPrice).toFixed(2)}
                       </div>
                       <div className="text-sm text-gray-700 font-semibold">
                         Subtotal: {item.currency}{" "}
                         {(
-                          item.itemTotalPrice *
-                          (editedQuantities[item.cartItemId] ?? item.quantity ?? 1)
+                          Number(unitPrice) *
+                          (editedQuantities[item.cartItemId] ??
+                            item.quantity ??
+                            1)
                         ).toFixed(2)}
                       </div>
                     </div>
@@ -205,7 +234,10 @@ const CartViewPage = () => {
                     {confirmDeleteId === item.cartItemId && (
                       <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-30 z-50">
                         <div className="bg-white p-6 rounded shadow-lg">
-                          <p className="mb-4">Are you sure you want to remove this item from the cart?</p>
+                          <p className="mb-4">
+                            Are you sure you want to remove this item from the
+                            cart?
+                          </p>
                           <div className="flex gap-4">
                             <button
                               className="bg-red-600 text-white px-4 py-2 rounded"

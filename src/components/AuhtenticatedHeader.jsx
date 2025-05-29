@@ -3,12 +3,16 @@ import { FiSearch, FiShoppingCart, FiMenu, FiX } from "react-icons/fi";
 import ButtonComponent from "./ButtonComponent";
 import { useNavigate } from "react-router-dom";
 import UserSettingOptions from "./UserSettingOptions";
+import useCartApi from "../api/useCartApi";
 
 const AuhtenticatedHeader = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showUserOptions, setShowUserOptions] = useState(false);
     const userMenuRef = useRef(null);
+    const { getCartItemCount } = useCartApi();
+    const [cartCount, setCartCount] = useState(0);
+    const [hideCartCount, setHideCartCount] = useState(false);
 
     const navigate = useNavigate();
     const user = JSON.parse(localStorage.getItem("user") || "null");
@@ -33,6 +37,17 @@ const AuhtenticatedHeader = () => {
             document.removeEventListener("mousedown", handleClickOutside);
         };
     }, [showUserOptions]);
+
+    React.useEffect(() => {
+        const user = JSON.parse(localStorage.getItem("user") || "null");
+        const userId = user?.userId;
+        if (userId) {
+            getCartItemCount(userId).then((res) => {
+                if (res.status === 200) setCartCount(res.data);
+            });
+        }
+        setHideCartCount(false); // Reset badge when header re-mounts or user changes
+    }, [getCartItemCount]);
 
     const handleLogout = () => {
         localStorage.removeItem("user");
@@ -97,11 +112,19 @@ const AuhtenticatedHeader = () => {
                     </button>
                     {/* Cart Icon */}
                     <button
-                        className="focus:outline-none"
+                        className="focus:outline-none relative"
                         aria-label="Cart"
-                        onClick={() => navigate("/cart")}
+                        onClick={() => {
+                            setHideCartCount(true); // Hide the badge
+                            navigate("/cart");
+                        }}
                     >
                         <FiShoppingCart className="text-2xl text-black" />
+                        {cartCount > 0 && !hideCartCount && (
+                            <span className="absolute -top-2 -right-2 bg-red-600 text-white text-xs rounded-full px-1.5 py-0.5">
+                                {cartCount}
+                            </span>
+                        )}
                     </button>
                     {/* User Image with dropdown */}
                     <div className="relative" ref={userMenuRef}>
