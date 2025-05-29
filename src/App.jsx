@@ -2,6 +2,7 @@ import { Routes, Route } from 'react-router-dom';
 import React, { Suspense } from 'react';
 import GuestLayout from './Layouts/GuestLayout';
 import AuthenticatedLayout from './Layouts/AuthenticatedLayout.jsx';
+import EditProducts from './components/EditProducts'; // Add this import at the top
 
 const Home = React.lazy(() => import('./pages/HomePage.jsx'));
 const Login = React.lazy(() => import('./pages/Login.jsx'));
@@ -21,7 +22,7 @@ function App() {
             <Route path="/" element={<Home />} />
             <Route path="/cart" element={<Cart/>} />
             <Route path="/products" element={<ProductManage/>} />
-
+            <Route path="/editProducts" element={<EditProducts />} /> {/* Add this line */}
         </Route>
       </Routes>
     </Suspense>

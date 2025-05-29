@@ -7,8 +7,8 @@ const useProductApi = () => {
         return response;
     };
     
-    const createProduct = async (productData) => {
-        const response = await axiosPrivate.post("/product", productData);
+    const createProduct = async (newProduct) => {
+        const response = await axiosPrivate.post("/product", newProduct);
         return response;
     };
     const getProductCategory = async () => {
@@ -34,8 +34,39 @@ const useProductApi = () => {
 
     return response;
 };
+const getOwnerProducts = async (userId) => {
+    const response = await axiosPrivate.get('/product/ownerProducts', {
+        params: { userId }
+    });
+    return response;
+};
+const createAttribute = async (productId, productsAtribute) => {
+    const response = await axiosPrivate.post(
+        '/product/attribute',
+        productsAtribute,
+        { params: { productId } }
+    );
+    return response;
+};
+const getProductById = async (productId) => {
+    const response = await axiosPrivate.get("/product/productById", {
+      params: { productId },
+    });
+    return response;
+};
 
-    return { getAllProducts, createProduct, getProductCategory,createContent };
+
+
+
+    return { 
+        getAllProducts, 
+        createProduct, 
+        getProductCategory,
+        createContent, 
+        getOwnerProducts, 
+        createAttribute,
+        getProductById
+    };
     }
 
 export default useProductApi;

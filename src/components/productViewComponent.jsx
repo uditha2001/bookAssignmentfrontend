@@ -1,6 +1,7 @@
 import { FiShoppingCart, FiEye } from "react-icons/fi";
+import useCartApi from "../api/useCartApi";
 
-const BASE_URL = "http://localhost:5010/"; 
+const BASE_URL = "http://localhost:5010/";
 
 const StarRating = ({ rate }) => {
   const stars = [];
@@ -15,6 +16,7 @@ const StarRating = ({ rate }) => {
 };
 
 const ProductViewComponent = ({
+  id,
   name,
   description,
   owner,
@@ -23,28 +25,53 @@ const ProductViewComponent = ({
   price,
   currency,
   contents = [],
+  setSuccess, 
+  setError
 }) => {
-  // Find first image or video (case-insensitive)
+  const { addToCart } = useCartApi();
   const mainContent = contents.find(
     (c) =>
-      c.type?.toLowerCase() === "image" || c.type?.toLowerCase() === "video"
+      (c.type && c.type.toLowerCase().startsWith("image")) ||
+      (c.type && c.type.toLowerCase().startsWith("video"))
   );
 
-  // Normalize URL to full URL if relative
   const getContentUrl = (url) => {
     if (!url) return "";
     if (url.startsWith("http://") || url.startsWith("https://")) {
       return url;
     }
-    // Assume relative URL, prepend base URL
-    return BASE_URL + url.replace(/^\/+/, ""); // Remove leading slashes if any
+    console.log("Normalizing URL:", BASE_URL + url.replace(/^\/+/, ""));
+    return BASE_URL + url.replace(/^\/+/, "");
+  };
+
+  // Add to cart handler
+  const handleAddToCart =async () => {
+    const user = JSON.parse(localStorage.getItem("user"));
+    const cartItem = {
+      ProductId: id,
+      Quantity: 1,
+      userId: user?.userId,
+      itemTotalPrice: price,
+    };
+    try{
+      const response=await addToCart(cartItem);
+      console.log("Add to cart response:", response);
+      if(response.status === 200) {
+        console.log("Item added to cart:", response.data);
+        setSuccess("Item added to cart successfully!");
+      }
+    }
+    catch (error) {
+      setError("Failed to add item to cart. Please try again.");
+      console.error("Error adding to cart:", error);
+    }
   };
 
   return (
     <div className="max-w-xs rounded-lg overflow-hidden shadow bg-white border border-gray-200 flex flex-col">
       <div className="w-full h-32 bg-gray-100 flex items-center justify-center">
         {mainContent ? (
-          mainContent.type.toLowerCase() === "image" ? (
+          mainContent.type.toLowerCase().startsWith("image") ? (
             <img
               src={getContentUrl(mainContent.url)}
               alt={name || "Product image"}
@@ -83,7 +110,10 @@ const ProductViewComponent = ({
         </div>
       </div>
       <div className="p-3 pt-0">
-        <button className="w-full flex items-center justify-center bg-black text-white py-2 rounded hover:bg-gray-800 transition text-sm">
+        <button
+          className="w-full flex items-center justify-center bg-black text-white py-2 rounded hover:bg-gray-800 transition text-sm"
+          onClick={handleAddToCart}
+        >
           <FiShoppingCart className="mr-2" />
           Add to Cart
         </button>
