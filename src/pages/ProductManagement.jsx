@@ -89,10 +89,9 @@ const ProductManagement = () => {
 
             // Upload attributes if any
             let allAttrSuccess = true;
-            
+            console.log("Attributes to save:", Attributes);
             if (createdProductId && Attributes.length > 0) {
-              console.log("Attributes to upload:", Attributes);
-              console.log("Created Product ID:", createdProductId);
+              console.log("Attributes to save:", Attributes);
               const attrResponse = await createAttribute(
                 createdProductId,
                 Attributes
@@ -127,9 +126,7 @@ const ProductManagement = () => {
       addProduct();
     }
   }, [newProduct, isAddProduct]);
-  useEffect(() => {
-    console.log("Attribute updated:", attribute);
-  }, [attribute]);
+ 
 
   // Handlers for product form
   const handleProductChange = (e) => {
@@ -158,7 +155,12 @@ const ProductManagement = () => {
         ...prev,
         Attributes: [
           ...prev.Attributes,
-          { key: attribute.key, value: attribute.value }, 
+          {
+            attributeId: 0,
+            provider: "",
+            key: attribute.key,
+            value: attribute.value
+          }
         ],
       }));
       setAttribute({ key: "", value: "" });

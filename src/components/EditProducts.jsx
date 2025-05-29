@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, use } from "react";
 import { FiEdit2, FiTrash2, FiPlus, FiX } from "react-icons/fi";
 import { useLocation } from "react-router-dom";
 import useProductApi from "../api/productAPI/useProductApi";
@@ -13,7 +13,7 @@ const EditProducts = ({ onSave, onDelete }) => {
     const [editProduct, setEditProduct] = useState({ ...product });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [categories, setCategories] = useState([]);
-    const { getProductCategory } = useProductApi();
+    const { getProductCategory, deleteContent } = useProductApi();
 
     useEffect(() => {
         const fetchCategories = async () => {
@@ -25,7 +25,10 @@ const EditProducts = ({ onSave, onDelete }) => {
             }
         };
         fetchCategories();
-    }, [getProductCategory]);
+    }, []); // <-- Only run once on mount
+    useEffect(() => {
+        console.log("Product to edit:", product);
+    },[editProduct]);
 
     // Handlers for product fields
     const handleChange = (e) => {
@@ -35,6 +38,7 @@ const EditProducts = ({ onSave, onDelete }) => {
             [name]: value,
         }));
     };
+
 
     // Attribute handlers
     const handleAttributeChange = (idx, key, value) => {
@@ -54,11 +58,30 @@ const EditProducts = ({ onSave, onDelete }) => {
     };
 
     // Content handlers
-    const handleDeleteContent = (idx) => {
-        setEditProduct((prev) => ({
-            ...prev,
-            contents: prev.contents.filter((_, i) => i !== idx),
-        }));
+    const handleDeleteContent = async (idx) => {
+        const content = editProduct.contents[idx];
+        console.log("Deleting content at index:", content.contentId, "with idx:", idx);
+        if (content && content.contentId) {
+            try {
+                const response = await deleteContent(content.contentId);
+                if (response.status === 200 || response.status === 204) {
+                    setEditProduct((prev) => ({
+                        ...prev,
+                        contents: prev.contents.filter((_, i) => i !== idx),
+                    }));
+                } else {
+                    alert("Failed to delete image from server.");
+                }
+            } catch (err) {
+                alert("Error deleting image from server.");
+            }
+        } else {
+            // If not saved yet, just remove from local state
+            setEditProduct((prev) => ({
+                ...prev,
+                contents: prev.contents.filter((_, i) => i !== idx),
+            }));
+        }
     };
 
     // Add new attribute

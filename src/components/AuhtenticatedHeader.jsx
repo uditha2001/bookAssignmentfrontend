@@ -9,6 +9,7 @@ const AuhtenticatedHeader = () => {
     const [menuOpen, setMenuOpen] = useState(false);
     const [showSearch, setShowSearch] = useState(false);
     const [showUserOptions, setShowUserOptions] = useState(false);
+    const [searchTerm, setSearchTerm] = useState("");
     const userMenuRef = useRef(null);
     const { getCartItemCount } = useCartApi();
     const [cartCount, setCartCount] = useState(0);
@@ -59,6 +60,16 @@ const AuhtenticatedHeader = () => {
         navigate("/settings");
     };
 
+    const handleSearch = (e) => {
+        e.preventDefault();
+        if (searchTerm.trim()) {
+            navigate(`/?search=${encodeURIComponent(searchTerm.trim())}`);
+        }
+        else{
+            navigate("/", { replace: true });
+        }
+    };
+
     return (
         <header className="bg-white text-black p-4 shadow-[0_4px_16px_-4px_rgba(0,0,0,0.15)] sticky top-0 z-[999]">
             <div className="flex items-center justify-between">
@@ -94,14 +105,21 @@ const AuhtenticatedHeader = () => {
                 {/* Right Side Icons and Search Bar */}
                 <div className="flex items-center space-x-4 relative">
                     {/* Search Bar (desktop only) */}
-                    <div className="hidden sm:flex items-center">
+                    <form
+                        className="hidden sm:flex items-center"
+                        onSubmit={handleSearch}
+                    >
                         <input
                             type="text"
                             placeholder="What are you looking for?"
                             className="px-2 py-1 rounded text-black border border-gray-300 w-56"
+                            value={searchTerm}
+                            onChange={(e) => setSearchTerm(e.target.value)}
                         />
-                        <FiSearch className="text-2xl text-black ml-2" />
-                    </div>
+                        <button type="submit">
+                            <FiSearch className="text-2xl text-black ml-2" />
+                        </button>
+                    </form>
                     {/* Search Icon (mobile) */}
                     <button
                         className="sm:hidden focus:outline-none"
@@ -164,6 +182,8 @@ const AuhtenticatedHeader = () => {
                         type="text"
                         placeholder="What are you looking for?"
                         className="px-2 py-1 rounded text-black border border-gray-300 w-full"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                         autoFocus
                     />
                 </div>
