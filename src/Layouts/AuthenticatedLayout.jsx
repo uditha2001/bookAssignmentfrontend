@@ -1,4 +1,3 @@
-import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import AuhtenticatedHeader from "../components/AuhtenticatedHeader";
 
@@ -7,7 +6,8 @@ const AuthenticatedLayout = () => {
     const token = user?.acessToken;
 
     if (!token) {
-        return <Navigate to="/home" replace />;
+        console.log("No token found, redirecting to login");
+        return <Navigate to="/" replace />;
     }
 
     return (

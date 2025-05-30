@@ -18,7 +18,7 @@ const Login = () => {
             if(response.status===200){
                 console.log("Login successful:", response);
                 localStorage.setItem("user", JSON.stringify(response.data));
-                navigate("/");
+                navigate("/home");
             }
         } catch (err) {
             setError("Invalid credentials");

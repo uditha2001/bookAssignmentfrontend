@@ -30,7 +30,6 @@ const HomePage = () => {
       }
     };
     fetchProducts();
-    navigate("/", { replace: true });
   }, []);
 
   useEffect(() => {

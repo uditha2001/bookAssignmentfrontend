@@ -1,13 +1,21 @@
 import useAxiosPrivate from "../hooks/useAxiosPrivate"
 const useOrderApi=()=>{
  const axiosPrivate = useAxiosPrivate();
- const submitOrder = async (userId) => {
-   const response = await axiosPrivate.post(`/cart/submit/${userId}`);
-   return response.data;
+ const getAllOrders = async (userId) => {
+   const response = await axiosPrivate.get(`/order`, {
+     params: { userId },
+   });
+   return response;
  };
+ const createOrder = async (order) => {
+   const response = await axiosPrivate.post(`/order`, order);
+   return response;
+ };
+
  return {
-   submitOrder,
- };
+    getAllOrders,
+    createOrder,
+ }
 
 }
 export default useOrderApi;
