@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { FiTrash2 } from "react-icons/fi";
+import { useNavigate } from "react-router-dom";
 import useCartApi from "../api/useCartApi";
 import useProductApi from "../api/productAPI/useProductApi";
 import SuccessMessage from "../components/SuccessMessage";
@@ -11,6 +12,7 @@ const CartViewPage = () => {
   const { getCartByUserId, removeItemFromCart, updateCartQuantities } =
     useCartApi();
   const { getProductById } = useProductApi();
+  const navigate = useNavigate();
   const [cartItems, setCartItems] = useState([]);
   const [editedQuantities, setEditedQuantities] = useState({});
   const [loading, setLoading] = useState(true);
@@ -273,7 +275,10 @@ const CartViewPage = () => {
               <div className="text-lg font-bold">
                 Total: USD {total.toFixed(2)}
               </div>
-              <button className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition text-base font-semibold">
+              <button
+                className="bg-black text-white px-6 py-2 rounded hover:bg-gray-800 transition text-base font-semibold"
+                onClick={() => navigate("/orderCheckout", { state: { cartItems } })}
+              >
                 Checkout
               </button>
             </div>

@@ -64,6 +64,10 @@ const deleteContent = async (id) => {
   const response = await axiosPrivate.delete(`/product/content/${id}`);
   return response;
 };
+const checkoutOrders = async (order) => {
+    const response = await axiosPrivate.post("/product/checkout",order);
+    return response;
+  };
 
 
 
@@ -78,7 +82,8 @@ const deleteContent = async (id) => {
         createAttribute,
         getProductById,
         deleteProduct,
-        deleteContent
+        deleteContent,
+        checkoutOrders
     };
     }
 
