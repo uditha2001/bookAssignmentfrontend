@@ -79,7 +79,7 @@ const AuhtenticatedHeader = () => {
                 <nav className="hidden sm:flex space-x-8 items-center">
                     <ButtonComponent
                         className="border-0 hover:border-b-2 hover:border-black rounded-none transition-all"
-                        onClick={() => navigate("/")}
+                        onClick={() => navigate("/home")}
                     >
                         Home
                     </ButtonComponent>

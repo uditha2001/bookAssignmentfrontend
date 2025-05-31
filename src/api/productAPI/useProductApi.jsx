@@ -72,6 +72,13 @@ const checkoutOrders = async (order) => {
     return await axiosPrivate.patch("/product/sellProducts", request);
   };
   
+  const updateProduct = async (product) => {
+    const response = await axiosPrivate.patch(
+      `/product/updateProduct`,
+      product
+    );
+    return response;
+  };
 
 
 
@@ -87,7 +94,8 @@ const checkoutOrders = async (order) => {
         deleteProduct,
         deleteContent,
         checkoutOrders,
-        sellProducts
+        sellProducts,
+        updateProduct
     };
     }
 
