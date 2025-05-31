@@ -10,10 +10,15 @@ const login = async (userName, password) => {
   return response;
 };
 
+const createUser = async (user) => {
+  const response = await axiosPrivate.post("/user", user);
+  return response;
+};
 
 
 
-  return { login};
+
+  return { login, createUser };
 };
 
 export default useUserApi;

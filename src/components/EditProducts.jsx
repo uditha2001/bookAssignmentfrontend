@@ -94,11 +94,20 @@ const EditProducts = ({ onSave, onDelete }) => {
 
   // Add new attribute
   const [newAttr, setNewAttr] = useState({ key: "", value: "" });
+
   const handleAddAttribute = () => {
     if (newAttr.key && newAttr.value) {
       setEditProduct((prev) => ({
         ...prev,
-        attributes: [...prev.attributes, { ...newAttr }],
+        attributes: [
+          ...prev.attributes,
+          {
+            attributeId: 0, // Always 0 for new
+            provider: "", // Always empty string for new
+            key: newAttr.key,
+            value: newAttr.value,
+          },
+        ],
       }));
       setNewAttr({ key: "", value: "" });
     }
@@ -142,7 +151,7 @@ const EditProducts = ({ onSave, onDelete }) => {
     };
 
     try {
-        console.log("Saving product:", updatedProduct);
+      console.log("Saving product:", updatedProduct);
       const response = await updateProduct(updatedProduct);
       // Check if response.status is 200 and response.data is true
       if (response.status === 200 && response.data === true) {
